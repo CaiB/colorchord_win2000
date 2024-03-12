@@ -177,6 +177,7 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 	int note_peaks = freqbins/2;
 	int freqs = freqbins * nf->octaves;
 	int maxdists = freqbins/2;
+	float dftbins[freqs];
 	float total_dist, muxer;
 
 	//Now, march onto the DFT, this pulls out the bins we're after.
