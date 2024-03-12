@@ -39,6 +39,7 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 	for( x = 0; x < d->xn; x++ )
 	{
 		int index = 0;
+		float dx, dy;
 		if( d->zigzag )
 		{
 			if( y & 1 )
@@ -55,8 +56,8 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 			index = x+y*d->xn;
 		}
 		CNFGColor(  (OutLEDs[index*3+0] <<24) | (OutLEDs[index*3+1] <<16) | (OutLEDs[index*3+2] <<8) | 0xff );
-		float dx = (x) * cw;
-		float dy = (y) * ch;
+		dx = (x) * cw;
+		dy = (y) * ch;
 
 		if( d->rot90 )
 			CNFGTackRectangle( dy, dx, dy+ch+.5, dx+cw+.5 );

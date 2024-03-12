@@ -4,4 +4,5 @@ colorchord2/colorchord.def
 **/*.exp
 **/*.ilk
 **/*.pdb
+**/*.obj
 colorchord2/colorchord.lib

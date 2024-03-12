@@ -23,14 +23,15 @@ int DecomposeHistogram( float * histogram, int bins, struct NoteDists * out_dist
 		float prev = histogram[(i-1+bins)%bins];
 		float this = histogram[i];
 		float next = histogram[(i+1)%bins];
+		float totaldiff, porpdiffP, porpdiffN;
 
 		if( prev >= this || next > this ) continue;
 		if( prev == this && next == this ) continue;
 
 		//i is at a peak... 
-		float totaldiff = (( this - prev ) + ( this - next ));
-		float porpdiffP = (this-prev)/totaldiff; //close to 0 = closer to this side... 0.5 = in the middle ... 1.0 away.
-		float porpdiffN = (this-next)/totaldiff;
+		totaldiff = (( this - prev ) + ( this - next ));
+		porpdiffP = (this-prev)/totaldiff; //close to 0 = closer to this side... 0.5 = in the middle ... 1.0 away.
+		porpdiffN = (this-next)/totaldiff;
 
 		if( porpdiffP < porpdiffN )
 		{
@@ -73,9 +74,10 @@ float CalcHistAt( float pt, int bins, struct NoteDists * out_dists, int cur_dist
 		float var  = out_dists[i].sigma;
 
 		float x = mean - pt;
+		float nrm;
 		if( x < - bins / 2 ) x += bins;
 		if( x > bins / 2 )   x -= bins;
-		float nrm = amp / (var * SQRT2PI ) * expf( - ( x * x ) / ( 2 * var * var ) );
+		nrm = amp / (var * SQRT2PI ) * expf( - ( x * x ) / ( 2 * var * var ) );
 		mark += nrm;
 	}
 	return mark;

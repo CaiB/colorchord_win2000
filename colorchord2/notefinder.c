@@ -84,6 +84,7 @@ void ChangeNFParameters( void * v )
 	//int ofreqs = ret->freqbins * ret->octaves;
 	int i;
 	struct NoteFinder * ret = (struct NoteFinder*)v;
+	int freqs;
 /*
 	char t[128];
 	ret->octaves = atoi_del( GetParamStr( parameters, "octaves", setstr( ret->octaves, t ) ) );
@@ -114,7 +115,7 @@ printf( "%d %d %f %f %f\n", ret->freqbins, ret->octaves, ret->base_hz, ret->dft_
 
 
 
-	int freqs = ret->freqbins * ret->octaves;
+	freqs = ret->freqbins * ret->octaves;
 
 	if( freqs != ret->ofreqs )
 	{
@@ -176,7 +177,7 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 	int note_peaks = freqbins/2;
 	int freqs = freqbins * nf->octaves;
 	int maxdists = freqbins/2;
-	float dftbins[freqs];
+	float total_dist, muxer;
 
 	//Now, march onto the DFT, this pulls out the bins we're after.
 	//This DFT function does not wavelet or anything.
@@ -244,13 +245,13 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 	nf->dists_count = DecomposeHistogram( nf->folded_bins, freqbins, nf->dists, maxdists, nf->default_sigma, nf->decompose_iterations );
 
 	//Compress/normalize dist_amps
-	float total_dist = 0;
+	total_dist = 0;
 
 	for( i = 0; i < nf->dists_count; i++ )
 	{
 		total_dist += nf->dists[i].amp;
 	}
-	float muxer = nf->compress_coefficient/powf( total_dist * nf->compress_coefficient, nf->compress_exponenet );
+	muxer = nf->compress_coefficient/powf( total_dist * nf->compress_coefficient, nf->compress_exponenet );
 	total_dist = muxer;
 	for( i = 0; i < nf->dists_count; i++ )
 	{
@@ -312,6 +313,7 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 			{
 				int a;
 				int b;
+				float newp;
 				if( nf->note_amplitudes[i] > nf->note_amplitudes[j] )
 				{
 					a = i;
@@ -322,7 +324,7 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 					b = i;
 					a = j;
 				}
-				float newp = avgloop( nf->note_positions[a], nf->note_amplitudes[a], nf->note_positions[b], nf->note_amplitudes[b], freqbins );
+				newp = avgloop( nf->note_positions[a], nf->note_amplitudes[a], nf->note_positions[b], nf->note_amplitudes[b], freqbins );
 
 				//Combine B into A.
 				nf->note_amplitudes[a] += nf->note_amplitudes[b];

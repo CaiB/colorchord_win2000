@@ -40,6 +40,9 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 {
 	int i;
 	struct DPODriver * d = (struct DPODriver*)id;
+	float totalexp = 0;
+	int x, y;
+	int led = 0;
 
 	int tleds = d->xn * d->yn;
 
@@ -52,7 +55,6 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 	}
 
 
-	float totalexp = 0;
 
 	for( i = 0; i < d->note_peaks; i++ )
 	{
@@ -92,8 +94,7 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 
 
 
-	int x, y;
-	int led = 0;
+
 	for( y = 0; y < d->yn; y++ )
 	for( x = 0; x < d->xn; x++ )
 	{
@@ -102,11 +103,13 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 
 		int bestmatch = -1;
 		float bestmatchval = 0;
+		uint32_t color = 0;
 		for( i = 0; i < d->note_peaks; i++ )
 		{
 			struct LINote * l = &d->notes[i];
 			float distsq = (lx-l->x)*(lx-l->x)+(ly-l->y)*(ly-l->y);
 			float dist;
+			float match;
 			if( d->distpow == 1.0 )
 				dist = distsq;
 			else if( d->distpow == 2.0 )
@@ -114,7 +117,7 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 			else
 				dist = powf(distsq,1.0);
 
-			float match = l->ledexp / dist;
+			match = l->ledexp / dist;
 			if( match > bestmatchval ) 
 			{
 				bestmatch = i;
@@ -122,12 +125,13 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 			}
 		}
 
-		uint32_t color = 0;
+		
 		if( bestmatch != -1 )
 		{
 			float sat = nf->note_amplitudes_out[bestmatch] * d->satamp;
+			float note_color;
 			if( sat > 1.0 ) sat = 1.0;
-			float note_color = nf->note_positions[bestmatch] / nf->freqbins;
+			note_color = nf->note_positions[bestmatch] / nf->freqbins;
 			color = CCtoHEX( note_color, 1.0, pow( sat, d->outgamma ) );
 		}
 

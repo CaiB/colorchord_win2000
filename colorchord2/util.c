@@ -25,6 +25,7 @@ float fabsloop( float a, float b, float modl )
 float avgloop( float pta, float ampa, float ptb, float ampb, float modl )
 {
 	float amptot = ampa + ampb;
+	float modmid;
 
 	//Determine if it should go linearly, or around the edge.
 	if( fabsf( pta - ptb ) > modl/2.0 )
@@ -40,7 +41,7 @@ float avgloop( float pta, float ampa, float ptb, float ampb, float modl )
 		}
 	}
 
-	float modmid = (pta * ampa + ptb * ampb)/amptot;
+	modmid = (pta * ampa + ptb * ampb)/amptot;
 
 	return fmodf( modmid, modl );
 }

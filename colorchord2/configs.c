@@ -18,17 +18,19 @@ void LoadFile( const char * filename )
 {
 	char * buffer;
 	int r;
+	FILE * f;
 
 	printf( "Loading file: %s\n", filename );
-	FILE * f = fopen( filename, "rb" );
+	f = fopen( filename, "rb" );
 	if( !f )
 	{
 		fprintf( stderr, "Warning: cannot open %s.\n", filename );
 	}
 	else
 	{
+		int size;
 		fseek( f, 0, SEEK_END );
-		int size = ftell( f );
+		size = ftell( f );
 		fseek( f, 0, SEEK_SET );
 		buffer = malloc( size + 1 );
 		r = fread( buffer, 1, size, f);
@@ -50,6 +52,7 @@ void SetEnvValues( int force )
 {
 	static int ifcheck;
 	int hits = 0;
+	int i;
 
 	if( InitialFileCount )
 	{
@@ -112,7 +115,7 @@ void SetEnvValues( int force )
 	printf( "On Android, looking for configuration file in: %s\n", InitialFile[0] );
 #endif
 
-	int i;
+	
 	for( i = 0; i < InitialFileCount; i++ )
 	{
 		LoadFile( InitialFile[i] );

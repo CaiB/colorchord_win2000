@@ -93,6 +93,7 @@ const char * GetParameterS( const char * name, const char * defa )
 static int SetParameter( struct Param * p, const char * str )
 {
 	struct LinkedParameter * lp;
+	struct ParamCallback * cb;
 	lp = p->lp;
 
 	switch( p->t )
@@ -132,7 +133,7 @@ static int SetParameter( struct Param * p, const char * str )
 		return -1;
 	}
 
-	struct ParamCallback * cb = p->callback;
+	cb = p->callback;
 	while( cb )
 	{
 		cb->t( cb->v );
@@ -144,25 +145,28 @@ static int SetParameter( struct Param * p, const char * str )
 
 void RegisterValue( const char * name, enum ParamType t, void * ptr, int size )
 {
+	struct Param * p;
 	Init();
 
-	struct Param * p = (struct Param*)HashGetEntry( parameters, name );
+	p = (struct Param*)HashGetEntry( parameters, name );
 
 	if( p )
 	{
 		//Entry already exists.
 		if( p->orphan )
 		{
+			char * orig;
+			int r;
 			if( p->t != PASTRING )
 			{
 				fprintf( stderr, "Warning: Orphan parameter %s was not a PSTRING.\n", name );
 			}
-			char * orig = p->lp->ptr;
+			orig = p->lp->ptr;
 			p->lp->ptr = ptr;
 			p->t = t;
 			p->size = size;
 			p->orphan = 0;
-			int r = SetParameter( p, orig );
+			r = SetParameter( p, orig );
 			free( orig );
 			if( r )
 			{
@@ -214,11 +218,12 @@ void SetParametersFromString( const char * string )
 
 	while( 1 )
 	{
+		char is_whitespace, is_break, is_comment, is_equal;
 		c = *(string++);
-		char is_whitespace = ( c == ' ' || c == '\t' || c == '\r' );
-		char is_break = ( c == '\n' || c == ';' || c == 0 );
-		char is_comment = ( c == '#' );
-		char is_equal = ( c == '=' );
+		is_whitespace = ( c == ' ' || c == '\t' || c == '\r' );
+		is_break = ( c == '\n' || c == ';' || c == 0 );
+		is_comment = ( c == '#' );
+		is_equal = ( c == '=' );
 
 		if( is_comment )
 		{
@@ -239,10 +244,11 @@ void SetParametersFromString( const char * string )
 			}
 			else
 			{
+				struct Param * p;
 				name[lastnamenowhite] = 0;
 				value[lastvaluenowhite] = 0;
 
-				struct Param * p = (struct Param*)HashGetEntry( parameters, name );
+				p = (struct Param*)HashGetEntry( parameters, name );
 				if( p )
 				{
 					printf( "Set: %s %s\n", name, value );

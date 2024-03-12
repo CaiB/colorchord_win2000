@@ -84,9 +84,10 @@ int firstnewline = -1;
 void example_log_function( int readSize, char *buf )
 {
 	static og_mutex_t *mt;
+	int i;
 	if ( !mt ) mt = OGCreateMutex();
 	OGLockMutex( mt );
-	for ( int i = 0; readSize && i <= readSize && buf[ i ]; i++ )
+	for ( i = 0; readSize && i <= readSize && buf[ i ]; i++ )
 	{
 		char c = buf[ i ];
 		if ( c == '\0' ) c = '\n';
@@ -95,10 +96,10 @@ void example_log_function( int readSize, char *buf )
 			genloglines++;
 			if ( genloglines >= GENLINES )
 			{
+				int offset, k;
 				genloglen -= firstnewline + 1;
-				int offset = firstnewline;
+				offset = firstnewline;
 				firstnewline = -1;
-				int k;
 				for ( k = 0; k < genloglen; k++ )
 				{
 					if ( ( genlog[ k ] = genlog[ k + offset + 1 ] ) == '\n' && firstnewline < 0 )
@@ -240,12 +241,14 @@ void SoundCB( struct CNFADriver *sd, short *out, short *in, int framesp, int fra
 	// Load the samples into a ring buffer.  Split the channels from interleved to one per buffer.
 	if ( in )
 	{
-		for ( int i = 0; i < framesr; i++ )
+		int i;
+		for ( i = 0; i < framesr; i++ )
 		{
 			if ( sample_channel < 0 )
 			{
 				float fo = 0;
-				for ( int j = 0; j < channelin; j++ )
+				int j;
+				for ( j = 0; j < channelin; j++ )
 				{
 					float f = in[ i * channelin + j ] / 32767.;
 					if ( f >= -1 && f <= 1 )
@@ -335,13 +338,19 @@ void RegisterConstructorFunctions()
 
 int main( int argc, char **argv )
 {
+	int i;
+	int frames;
+	double ThisTime, SecToWait, LastFPSTime, LastFrameTime;
+	char title[ 1024 ];
+	char *OutDriverNames, *ThisDriver, *TDStart;
+	double Last;	
 #ifdef TCC
 	RegisterConstructorFunctions();
 #endif
 
 
 	printf( "Output Drivers:\n" );
-	for ( int i = 0; i < MAX_OUT_DRIVERS; i++ )
+	for ( i = 0; i < MAX_OUT_DRIVERS; i++ )
 	{
 		if ( ODList[ i ].Name ) printf( "\t%s\n", ODList[ i ].Name );
 	}
@@ -365,27 +374,25 @@ int main( int argc, char **argv )
 	SetupConfigs();
 
 	// Initialize Rawdraw
-	int frames = 0;
-	double ThisTime;
-	double SecToWait;
-	double LastFPSTime = OGGetAbsoluteTime();
-	double LastFrameTime = OGGetAbsoluteTime();
+	frames = 0;
+	LastFPSTime = OGGetAbsoluteTime();
+	LastFrameTime = OGGetAbsoluteTime();
 	CNFGBGColor = BACKGROUND_COLOR;
 
 	// Generate the window title
-	char title[ 1024 ];
+
 	strcpy( title, "Colorchord " );
-	for ( int i = 1; i < argc; i++ )
+	for ( i = 1; i < argc; i++ )
 	{
 		strcat( title, argv[ i ] );
 		strcat( title, " " );
 	}
 	if ( !headless ) CNFGSetup( title, set_screenx, set_screeny );
 
-	char *OutDriverNames = strdup( GetParameterS( "outdrivers", "null" ) );
-	char *ThisDriver = OutDriverNames;
-	char *TDStart;
-	for ( int i = 0; i < MAX_OUT_DRIVERS; i++ )
+	OutDriverNames = strdup( GetParameterS( "outdrivers", "null" ) );
+	ThisDriver = OutDriverNames;
+	TDStart;
+	for ( i = 0; i < MAX_OUT_DRIVERS; i++ )
 	{
 		while ( *ThisDriver == ' ' || *ThisDriver == '\t' ) ThisDriver++;
 		if ( !*ThisDriver ) break;
@@ -442,7 +449,7 @@ int main( int argc, char **argv )
 	printf( "================================================= Set Up\n" );
 
 	Now = OGGetAbsoluteTime();
-	double Last = Now;
+	Last = Now;
 	while ( !bQuitColorChord )
 	{
 		char stt[ 1024 ];
@@ -466,7 +473,7 @@ int main( int argc, char **argv )
 		VisTimeStart = OGGetAbsoluteTime();
 
 		// call the output drivers with the updated note finder data
-		for ( int i = 0; i < MAX_OUT_DRIVERS; i++ )
+		for ( i = 0; i < MAX_OUT_DRIVERS; i++ )
 		{
 			if ( force_white ) memset( OutLEDs, 0x7f, MAX_LEDS * 3 );
 			if ( outdriver[ i ] ) outdriver[ i ]->Func( outdriver[ i ]->id, nf );
@@ -485,8 +492,9 @@ int main( int argc, char **argv )
 			// Do a bunch of debugging.
 			if ( show_debug_basic && !is_suspended )
 			{
+				int bin, peak, lasty, thissoundhead, thisy;
 				CNFGColor( TEXT_COLOR );
-				for ( int i = 0; i < nf->dists_count; i++ )
+				for ( i = 0; i < nf->dists_count; i++ )
 				{
 					// Move over 0.5 for visual purposes.  The means is correct.
 					CNFGPenX = ( nf->dists[ i ].mean + 0.5 ) / freqbins * screenx;
@@ -497,7 +505,7 @@ int main( int argc, char **argv )
 
 				CNFGColor( LINE_COLOR );
 				// Draw the folded bins
-				for ( int bin = 0; bin < freqbins; bin++ )
+				for ( bin = 0; bin < freqbins; bin++ )
 				{
 					const float x0 = bin / (float)freqbins * (float)screenx;
 					const float x1 = ( bin + 1 ) / (float)freqbins * (float)screenx;
@@ -508,15 +516,17 @@ int main( int argc, char **argv )
 				}
 
 				// Draw the note peaks
-				for ( int peak = 0; peak < note_peaks; peak++ )
+				for ( peak = 0; peak < note_peaks; peak++ )
 				{
+					float note;
+					int x1, x2, y1, y2;
 					if ( nf->note_amplitudes_out[ peak ] < 0 ) continue;
-					float note = (float)nf->note_positions[ peak ] / freqbins;
+					note = (float)nf->note_positions[ peak ] / freqbins;
 					CNFGDialogColor = CCtoHEX( note, 1.0, 1.0 );
-					const int x1 = ( (float)peak / note_peaks ) * screenx;
-					const int x2 = ( (float)( peak + 1 ) / note_peaks ) * screenx;
-					const int y1 = 480 - nf->note_amplitudes_out[ peak ] * 100;
-					const int y2 = 480;
+					x1 = ( (float)peak / note_peaks ) * screenx;
+					x2 = ( (float)( peak + 1 ) / note_peaks ) * screenx;
+					y1 = 480 - nf->note_amplitudes_out[ peak ] * 100;
+					y2 = 480;
 					CNFGColor( LINE_COLOR );
 					CNFGDrawBox( x1, y1, x2, y2 );
 
@@ -531,10 +541,9 @@ int main( int argc, char **argv )
 
 				CNFGColor( LINE_COLOR );
 				// Let's draw the o-scope.
-				int lasty;
-				int thissoundhead = ( soundhead - 1 + SOUNDCBSIZE ) % SOUNDCBSIZE;
-				int thisy = sound[ thissoundhead ] * -128 + 128;
-				for ( int i = screenx - 1; i > 0; i-- )
+				thissoundhead = ( soundhead - 1 + SOUNDCBSIZE ) % SOUNDCBSIZE;
+				thisy = sound[ thissoundhead ] * -128 + 128;
+				for ( i = screenx - 1; i > 0; i-- )
 				{
 					lasty = thisy;
 					thissoundhead = ( thissoundhead - 1 + SOUNDCBSIZE ) % SOUNDCBSIZE;
@@ -546,10 +555,13 @@ int main( int argc, char **argv )
 			// Extra debugging?
 			if ( show_debug && !is_suspended )
 			{
-				// Draw the histogram
 				float lasthistval;
+				int x_val, bin;
+				char stdebug[ 1024 ];
+
+				// Draw the histogram
 				CNFGColor( LINE_COLOR );
-				for ( int x_val = -1; x_val < screenx; x_val++ )
+				for ( x_val = -1; x_val < screenx; x_val++ )
 				{
 					// Calculate the value of the histogram at the current screen position
 					float hist_point = (float)x_val / (float)screenx * freqbins - 0.5;
@@ -564,7 +576,7 @@ int main( int argc, char **argv )
 
 				CNFGColor( LINE_COLOR );
 				// Draw the bins
-				for ( int bin = 0; bin < freqs; bin++ )
+				for ( bin = 0; bin < freqs; bin++ )
 				{
 					float x0 = bin / (float)freqs * (float)screenx;
 					float x1 = ( bin + 1 ) / (float)freqs * (float)screenx;
@@ -575,7 +587,6 @@ int main( int argc, char **argv )
 				}
 
 				CNFGColor( TEXT_COLOR );
-				char stdebug[ 1024 ];
 				sprintf( stdebug, "DFT:%8.2fms\nFLT:%8.2f\nDEC:%8.2f\nFNL:%8.2f\nDPY:%8.2f",
 					( nf->DFTTime - nf->StartTime ) * 1000, ( nf->FilterTime - nf->DFTTime ) * 1000,
 					( nf->DecomposeTime - nf->FilterTime ) * 1000,

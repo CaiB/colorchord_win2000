@@ -23,14 +23,16 @@ void DoDFT( float *outbins, float *frequencies, int bins, float *databuffer,
 
 		float binqtys = 0;
 		float binqtyc = 0;
+		float amp;
 
 		for ( j = 0; j <= freq * q; j++ )
 		{
 			float sample = databuffer[ sampleplace ];
+			float sv, cv;
 			sampleplace = ( sampleplace - 1 + size_of_data_buffer ) % size_of_data_buffer;
 			// printf( "%d\n", sampleplace );
-			float sv = sin( phi ) * sample;
-			float cv = cos( phi ) * sample;
+			sv = sin( phi ) * sample;
+			cv = cos( phi ) * sample;
 
 			binqtys += sv;
 			binqtyc += cv;
@@ -38,7 +40,7 @@ void DoDFT( float *outbins, float *frequencies, int bins, float *databuffer,
 			phi += advance;
 		}
 
-		float amp = sqrtf( binqtys * binqtys + binqtyc * binqtyc );
+		amp = sqrtf( binqtys * binqtys + binqtyc * binqtyc );
 		outbins[ i ] = amp / freq / q;
 	}
 }
@@ -60,6 +62,7 @@ void DoDFTQuick( float *outbins, float *frequencies, int bins, const float *data
 
 		float binqtys = 0;
 		float binqtyc = 0;
+		float amp;
 
 		int skip = floor( ftq / speedup );
 		if ( skip == 0 ) skip = 1;
@@ -68,10 +71,11 @@ void DoDFTQuick( float *outbins, float *frequencies, int bins, const float *data
 		for ( j = 0; j <= ftq; j += skip )
 		{
 			float sample = databuffer[ sampleplace ];
+			float sv, cv;
 			sampleplace = ( sampleplace - skip + size_of_data_buffer ) % size_of_data_buffer;
 			// printf( "%d\n", sampleplace );
-			float sv = sinf( phi ) * sample;
-			float cv = cosf( phi ) * sample;
+			sv = sinf( phi ) * sample;
+			cv = cosf( phi ) * sample;
 
 			binqtys += sv;
 			binqtyc += cv;
@@ -80,7 +84,7 @@ void DoDFTQuick( float *outbins, float *frequencies, int bins, const float *data
 			flirts++;
 		}
 
-		float amp = sqrtf( binqtys * binqtys + binqtyc * binqtyc );
+		amp = sqrtf( binqtys * binqtys + binqtyc * binqtyc );
 		outbins[ i ] = amp / freq / q * skip;
 	}
 }
@@ -127,6 +131,7 @@ void DoDFTProgressive( float *outbins, float *frequencies, int bins, const float
 {
 	int i;
 	static int last_place;
+	int didrun;
 
 	if ( gbins != bins )
 	{
@@ -163,7 +168,7 @@ void DoDFTProgressive( float *outbins, float *frequencies, int bins, const float
 
 	place_in_data_buffer = ( place_in_data_buffer + 1 ) % size_of_data_buffer;
 
-	int didrun = 0;
+	didrun = 0;
 	for ( i = last_place; i != place_in_data_buffer; i = ( i + 1 ) % size_of_data_buffer )
 	{
 		float fin = ( (float)( (int)( databuffer[ i ] * 127 ) ) ) /
@@ -479,6 +484,8 @@ void HandleProgressiveIntSkippy( int8_t sample1 )
 	int16_t tmp1;
 	int8_t s1, c1;
 	uint16_t ipl, localipl, adv;
+	uint16_t * ds;
+	int8_t * st;
 
 	uint8_t oct = Sdo_this_octave[Swhichoctaveplace];
 	Swhichoctaveplace ++;
@@ -498,6 +505,7 @@ void HandleProgressiveIntSkippy( int8_t sample1 )
 
 		for( i = 0; i < FIXBINS; i++ )
 		{
+			uint32_t rmux;
 			int16_t isps = Sdatspace[i*4+2];
 			int16_t ispc = Sdatspace[i*4+3];
 	//		printf( "%d (%d %d)\n", mux, isps, ispc );
@@ -512,7 +520,7 @@ void HandleProgressiveIntSkippy( int8_t sample1 )
 #endif
 
 
-			uint32_t rmux = ( (isps) * (isps)) + ((ispc) * (ispc));
+			rmux = ( (isps) * (isps)) + ((ispc) * (ispc));
 			embeddedbins[i] = SquareRootRounded( rmux );
 			embeddedbins[i] >>= octave;
 
@@ -532,8 +540,8 @@ void HandleProgressiveIntSkippy( int8_t sample1 )
 		Saccum_octavebins[i] += sample1;
 	}
 
-	uint16_t * ds = &Sdatspace[oct*FIXBPERO*4];
-	const int8_t * st;
+	ds = &Sdatspace[oct*FIXBPERO*4];
+	st;
 
 	sample1 = Saccum_octavebins[oct]>>(OCTAVES-oct);
 	Saccum_octavebins[oct] = 0;
