@@ -3,6 +3,10 @@
 //XXX This needs to be re-worked to only output LEDs so DisplayArray can take it.
 //XXX CONSIDER DUMPING
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#endif
+
 #include "outdrivers.h"
 #include "notefinder.h"
 #include <stdio.h>

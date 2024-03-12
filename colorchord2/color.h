@@ -5,7 +5,11 @@
 #ifndef _COLOR_H
 #define _COLOR_H
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#else
 #include <stdint.h>
+#endif
 
 //note = 0..1 (Root is YELLOW); Val = 0..1
 //NOTE: CC is _NOT_ HUE!!!

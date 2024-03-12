@@ -57,8 +57,12 @@ void SetParametersFromString( const char * string );
 
 void AddCallback( const char * name, ParamCallbackT t, void * v );
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#define REGISTER_PARAM( parameter_name, type ) \
+	void REGISTER##parameter_name() { RegisterValue( #parameter_name, type, &parameter_name, sizeof( parameter_name ) ); }
+#else
 #define REGISTER_PARAM( parameter_name, type ) \
 	void __attribute__((constructor))  REGISTER##parameter_name() { RegisterValue( #parameter_name, type, &parameter_name, sizeof( parameter_name ) ); }
-
+#endif
 
 #endif

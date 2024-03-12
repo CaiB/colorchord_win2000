@@ -375,7 +375,11 @@ static void merge( struct chashentry ** tmpitems, int start, int middle, int end
 	int bptr = middle;
 	int i = 0;
 	int count = end-start+1;
+	#if defined(_MSC_VER) && _MSC_VER <= 1200
+	struct chashentry ** ret = alloca(sizeof(struct chashentry*) * count);
+	#else
 	struct chashentry * ret[count];
+	#endif
 
 	if( count == 1 ) return;
 

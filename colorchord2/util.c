@@ -2,6 +2,10 @@
 //This file may be used in whole or part in any way for any purpose by anyone
 //without restriction.
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#endif
+
 #include <math.h>
 #include "util.h"
 #include <stdlib.h>

@@ -40,7 +40,12 @@ extern const char OutDriverParameters[MAX_OUT_DRIVER_STRING];
 struct DriverInstances * SetupOutDriver( const char * drivername );
 void RegOutDriver( const char * ron, struct DriverInstances * (*Init)( ) );
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#define REGISTER_OUT_DRIVER( name ) \
+	void REGISTER##name() { RegOutDriver( #name, name ); }
+#else
 #define REGISTER_OUT_DRIVER( name ) \
 	void __attribute__((constructor)) REGISTER##name() { RegOutDriver( #name, name ); }
+#endif
 
 #endif

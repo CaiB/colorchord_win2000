@@ -11,6 +11,9 @@
 #include "filter.h"
 #include "decompose.h"
 #include "DFT32.h"
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include <malloc.h>
+#endif
 
 struct NoteFinder * CreateNoteFinder( int spsRec )
 {
@@ -177,7 +180,11 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 	int note_peaks = freqbins/2;
 	int freqs = freqbins * nf->octaves;
 	int maxdists = freqbins/2;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	float * dftbins = alloca(sizeof(float) * freqs);
+#else
 	float dftbins[freqs];
+#endif
 	float total_dist, muxer;
 
 	//Now, march onto the DFT, this pulls out the bins we're after.
@@ -391,6 +398,7 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 
 	
 	nf->FinalizeTime = OGGetAbsoluteTime();
+	free(dftbins);
 }
 
 

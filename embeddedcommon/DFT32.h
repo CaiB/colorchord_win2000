@@ -7,6 +7,8 @@
 
 #ifdef ICACHE_FLASH
 #include <c_types.h> //If on ESP8266
+#elif defined(_MSC_VER) && _MSC_VER <= 1200
+#include "../colorchord2/windows2000/msvc6types.h"
 #else
 #include <stdint.h>
 #endif

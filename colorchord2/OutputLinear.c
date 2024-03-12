@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include <malloc.h>
+#endif
+
 struct LEDOutDriver
 {
 	int did_init;
@@ -54,12 +58,21 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	//Step 1: Calculate the quantity of all the LEDs we'll want.
 	int totbins = nf->note_peaks;//nf->dists;
 	int i, j;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	float* binvals  = alloca(sizeof(float) * totbins);
+	float* binvalsQ = alloca(sizeof(float) * totbins);
+	float* binpos   = alloca(sizeof(float) * totbins);
+	float* rledpos  = alloca(sizeof(float) * led->total_leds);
+	float* rledamp  = alloca(sizeof(float) * led->total_leds);
+	float* rledampQ = alloca(sizeof(float) * led->total_leds);
+#else
 	float binvals[totbins];
 	float binvalsQ[totbins];
 	float binpos[totbins];
 	float rledpos[led->total_leds];
 	float rledamp[led->total_leds];
 	float rledampQ[led->total_leds];
+#endif
 	float totalbinval = 0;
 	int rbinout = 0;
 

@@ -1,5 +1,9 @@
 //Copyright 2015 <>< Charles Lohr under the ColorChord License.
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#endif
+
 #include "decompose.h"
 #include "notefinder.h"
 #include <stdio.h>

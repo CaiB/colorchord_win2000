@@ -8,6 +8,7 @@
 
 #if defined(WINDOWS) || defined(WIN32)  || defined(WIN64) \
                      || defined(_WIN32) || defined(_WIN64)
+#include <Windows.h>
 #ifndef strdup
 #define strdup _strdup
 #endif
@@ -76,8 +77,13 @@ const char * GetParameterS( const char * name, const char * defa )
 	{
 		switch( p->t )
 		{
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		case PAFLOAT: wsprintf( returnbuffer, "%0.4f", *((float*)p->lp->ptr) ); return returnbuffer;
+		case PAINT:   wsprintf( returnbuffer, "%d", *((int*)p->lp->ptr) );      return returnbuffer;
+#else
 		case PAFLOAT: snprintf( returnbuffer, sizeof( returnbuffer ), "%0.4f", *((float*)p->lp->ptr) ); return returnbuffer;
 		case PAINT:   snprintf( returnbuffer, sizeof( returnbuffer ), "%d", *((int*)p->lp->ptr) );      return returnbuffer;
+#endif
 		case PASTRING:
 		case PABUFFER: return p->lp->ptr;
 		default: break;

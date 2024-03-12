@@ -6,3 +6,8 @@ colorchord2/colorchord.def
 **/*.pdb
 **/*.obj
 colorchord2/colorchord.lib
+colorchord2/windows2000/Debug/**
+colorchord2/windows2000/Release/**
+colorchord2/windows2000/*.ncb
+colorchord2/windows2000/*.opt
+colorchord2/windows2000/*.plg

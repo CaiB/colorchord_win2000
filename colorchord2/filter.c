@@ -3,6 +3,9 @@
 #include "filter.h"
 #include <math.h>
 #include <string.h>
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include <malloc.h>
+#endif
 
 /*
 void FilterFoldedBinsIIRTWOPASS( float * folded, int bins, float iir )
@@ -40,7 +43,11 @@ void FilterFoldedBinsIIRTWOPASS( float * folded, int bins, float iir )
 
 void FilterFoldedBinsBlob( float * folded, int bins, float strength, int iter )
 {
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	float * tmp = alloca(sizeof(float) * bins);
+#else
 	float tmp[bins];
+#endif
 	int i;
 	int j;
 	for( j = 0; j < iter; j++ )

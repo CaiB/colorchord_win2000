@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include <malloc.h>
+#endif
+
 extern float DeltaFrameTime;
 extern double Now;
 
@@ -44,12 +48,21 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	//Step 1: Calculate the quantity of all the LEDs we'll want.
 	int totbins = nf->note_peaks;//nf->dists;
 	int i, j;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	float* binvals  = alloca(sizeof(float) * totbins);
+	float* binvalsQ = alloca(sizeof(float) * totbins);
+	float* binpos   = alloca(sizeof(float) * totbins);
+	float* qtyHave  = alloca(sizeof(float) * totbins);
+	float* qtyWant  = alloca(sizeof(float) * totbins);
+	float* qtyDiff  = alloca(sizeof(float) * totbins);
+#else
 	float binvals[totbins];
 	float binvalsQ[totbins];
 	float binpos[totbins];
 	float qtyHave[totbins];
 	float qtyWant[totbins];
 	float qtyDiff[totbins];
+#endif
 	float totalbinval = 0;
 	float totQtyWant = 0;
 

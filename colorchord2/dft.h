@@ -3,7 +3,11 @@
 #ifndef _DFT_H
 #define _DFT_H
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#else
 #include <stdint.h>
+#endif
 
 //Warning: Most ColorChords are not available for ColorChord Embedded.
 #ifndef CCEMBEDDED

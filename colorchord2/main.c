@@ -2,6 +2,7 @@
 
 #if defined( WINDOWS ) || defined( USE_WINDOWS ) || defined( WIN32 ) || defined( WIN64 ) || \
 	defined( _WIN32 ) || defined( _WIN64 )
+#include <ntverp.h> // This probably won't work on pre-NT systems, used to check for WASAPI compatibility
 #ifdef TCC
 #include <winsock2.h>
 #endif
@@ -15,6 +16,9 @@
 #define IS_WINDOWS 0
 #endif
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#include "windows2000/msvc6types.h"
+#endif
 #include "color.h"
 #include "configs.h"
 #include "decompose.h"
@@ -292,7 +296,7 @@ void HandleResume()
 #endif
 
 // function for calling initilization functions if we are using TCC
-#ifdef TCC
+#if defined(TCC) || (defined(_MSC_VER) && !defined(__clang__))
 void RegisterConstructorFunctions()
 {
 
@@ -310,13 +314,17 @@ void RegisterConstructorFunctions()
 	// Audio stuff
 	REGISTERNullCNFA();
 	REGISTERWinCNFA();
-	REGISTERcnfa_wasapi();
+#if (defined(WINDOWS) || defined(WIN32) || defined(WIN64)) && (VER_PRODUCTBUILD >= 7601)
+    REGISTERcnfa_wasapi();
+#endif
 
 	// Video Stuff
 	REGISTERnull();
 	REGISTERDisplayArray();
+#if !(defined(_MSC_VER) && _MSC_VER <= 1200)
 	REGISTERDisplayHIDAPI();
 	REGISTERDisplayNetwork();
+#endif
 	REGISTERDisplayOutDriver();
 	REGISTERDisplayPie();
 	REGISTERDisplayRadialPoles();
@@ -338,13 +346,17 @@ void RegisterConstructorFunctions()
 
 int main( int argc, char **argv )
 {
+#if (defined( WIN32 ) || defined( USE_WINDOWS )) && !(defined(_MSC_VER) && _MSC_VER <= 1200)
+	// In case something needs network access.
+	WSADATA wsaData;
+#endif
 	int i;
 	int frames;
 	double ThisTime, SecToWait, LastFPSTime, LastFrameTime;
 	char title[ 1024 ];
 	char *OutDriverNames, *ThisDriver, *TDStart;
 	double Last;	
-#ifdef TCC
+#if defined(TCC) || (defined(_MSC_VER) && !defined(__clang__))
 	RegisterConstructorFunctions();
 #endif
 
@@ -354,10 +366,9 @@ int main( int argc, char **argv )
 	{
 		if ( ODList[ i ].Name ) printf( "\t%s\n", ODList[ i ].Name );
 	}
-
-#if defined( WIN32 ) || defined( USE_WINDOWS )
+	
+#if (defined( WIN32 ) || defined( USE_WINDOWS )) && !(defined(_MSC_VER) && !defined(__clang__))
 	// In case something needs network access.
-	WSADATA wsaData;
 	WSAStartup( 0x202, &wsaData );
 #elif defined( ANDROID )
 	int hasperm = AndroidHasPermissions( "READ_EXTERNAL_STORAGE" );
