@@ -36,33 +36,38 @@ static void DPRUpdate(void * id, struct NoteFinder*nf)
 			float angle = pole / (float)freqbins * 3.14159 * 2;
 			float cx = screenx/2;
 			float cy = screeny/2;
+			float extentx, extenty, orthox, orthoy;
+			float p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y;
+
 			cx += cos( angle ) * d->centeroffset;
 			cy += sin( angle ) * d->centeroffset;
-			float extentx = cx + cos(angle) * d->radialscale * nf->folded_bins[pole];
-			float extenty = cy + sin(angle) * d->radialscale * nf->folded_bins[pole];
-			float orthox = sin(angle) * d->polewidth;
-			float orthoy = -cos(angle) * d->polewidth;
+			extentx = cx + cos(angle) * d->radialscale * nf->folded_bins[pole];
+			extenty = cy + sin(angle) * d->radialscale * nf->folded_bins[pole];
+			orthox = sin(angle) * d->polewidth;
+			orthoy = -cos(angle) * d->polewidth;
 
-			float p1x = cx + orthox;
-			float p1y = cy + orthoy;
-			float p2x = cx - orthox;
-			float p2y = cy - orthoy;
-			float p3x = extentx + orthox;
-			float p3y = extenty + orthoy;
-			float p4x = extentx - orthox;
-			float p4y = extenty - orthoy;
+			p1x = cx + orthox;
+			p1y = cy + orthoy;
+			p2x = cx - orthox;
+			p2y = cy - orthoy;
+			p3x = extentx + orthox;
+			p3y = extenty + orthoy;
+			p4x = extentx - orthox;
+			p4y = extenty - orthoy;
 
-			CNFGColor( CCtoHEX( (float)pole / (float)freqbins, 1.0, 1.0 ) );
-			RDPoint pts[6] = {
-				{ p1x, p1y },
-				{ p2x, p2y },
-				{ p3x, p3y },
-				{ p4x, p4y }, 
-				{ p3x, p3y },
-				{ p2x, p2y },
-			};
-			CNFGTackPoly( pts, 3 );
-			CNFGTackPoly( pts+3, 3 );
+			{
+				RDPoint pts[6] = {
+					{ p1x, p1y },
+					{ p2x, p2y },
+					{ p3x, p3y },
+					{ p4x, p4y }, 
+					{ p3x, p3y },
+					{ p2x, p2y },
+				};
+				CNFGColor( CCtoHEX( (float)pole / (float)freqbins, 1.0, 1.0 ) );
+				CNFGTackPoly( pts, 3 );
+				CNFGTackPoly( pts+3, 3 );
+			}
 
 
 			CNFGColor( 0x000000ff );
@@ -80,39 +85,42 @@ static void DPRUpdate(void * id, struct NoteFinder*nf)
 		int freqbins = nf->freqbins;
 		for( pole = 0; pole < freqbins; pole++ )
 		{
+			float angleT, angleN, cx, cy, p1x, p1y, p2x, p2y, binval, binvalN, p3x, p3y, p4x, p4y;
 			polen = (pole+1)%freqbins;
 
-			float angleT = pole / (float)freqbins * 3.14159 * 2;
-			float angleN = polen / (float)freqbins * 3.14159 * 2;
-			float cx = screenx/2;
-			float cy = screeny/2;
+			angleT = pole / (float)freqbins * 3.14159 * 2;
+			angleN = polen / (float)freqbins * 3.14159 * 2;
+			cx = screenx/2;
+			cy = screeny/2;
 
-			float p1x = cx + cos( angleT ) * d->centeroffset;
-			float p1y = cy + sin( angleT ) * d->centeroffset;
+			p1x = cx + cos( angleT ) * d->centeroffset;
+			p1y = cy + sin( angleT ) * d->centeroffset;
 
-			float p2x = cx + cos( angleN ) * d->centeroffset;
-			float p2y = cy + sin( angleN ) * d->centeroffset;
+			p2x = cx + cos( angleN ) * d->centeroffset;
+			p2y = cy + sin( angleN ) * d->centeroffset;
 
-			float binval = nf->folded_bins[pole];
-			float binvalN = nf->folded_bins[polen];
+			binval = nf->folded_bins[pole];
+			binvalN = nf->folded_bins[polen];
 
-			float p3x = cx + cos( angleT ) * (d->radialscale * binval + d->centeroffset);
-			float p3y = cy + sin( angleT ) * (d->radialscale * binval + d->centeroffset);
+			p3x = cx + cos( angleT ) * (d->radialscale * binval + d->centeroffset);
+			p3y = cy + sin( angleT ) * (d->radialscale * binval + d->centeroffset);
 
-			float p4x = cx + cos( angleN ) * (d->radialscale * binvalN + d->centeroffset);
-			float p4y = cy + sin( angleN ) * (d->radialscale * binvalN + d->centeroffset);
+			p4x = cx + cos( angleN ) * (d->radialscale * binvalN + d->centeroffset);
+			p4y = cy + sin( angleN ) * (d->radialscale * binvalN + d->centeroffset);
 
-			CNFGColor( CCtoHEX( (float)pole / (float)freqbins, 1.0, 1.0 ) );
-			RDPoint pts[6] = {
-				{ p1x, p1y },
-				{ p2x, p2y },
-				{ p3x, p3y },
-				{ p4x, p4y }, 
-				{ p3x, p3y },
-				{ p2x, p2y },
-			};
-			CNFGTackPoly( pts, 3 );
-			CNFGTackPoly( pts+3, 3 );
+			{
+				RDPoint pts[6] = {
+					{ p1x, p1y },
+					{ p2x, p2y },
+					{ p3x, p3y },
+					{ p4x, p4y }, 
+					{ p3x, p3y },
+					{ p2x, p2y },
+				};
+				CNFGColor( CCtoHEX( (float)pole / (float)freqbins, 1.0, 1.0 ) );
+				CNFGTackPoly( pts, 3 );
+				CNFGTackPoly( pts+3, 3 );
+			}
 
 			CNFGColor( 0x000000ff );
 			CNFGTackSegment( p1x, p1y, p2x, p2y);

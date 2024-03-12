@@ -30,6 +30,9 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	float selected_amp = 0;
 	float selected_note = 0;
 
+	float sendsat;
+	int r;
+
 //	if( totbins > led_bins ) totbins = led_bins;
 
 	for( i = 0; i < totbins; i++ )
@@ -43,9 +46,9 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 		}
 	}
 
-	float sendsat = selected_amp;
+	sendsat = selected_amp;
 	if( sendsat > 1 ) sendsat = 1;
-	int r = CCtoHEX( selected_note, 1.0, sendsat );
+	r = CCtoHEX( selected_note, 1.0, sendsat );
 
 	//Advance the LEDs to this position when outputting the values.
 	for( i = 0; i < led->total_leds; i++ )	
@@ -72,9 +75,12 @@ static void LEDParams(void * id )
 
 static struct DriverInstances * OutputProminent()
 {
-	struct DriverInstances * ret = malloc( sizeof( struct DriverInstances ) );
+	struct DriverInstances * ret;
+	struct ProminentDriver * led;
+
+	ret = malloc( sizeof( struct DriverInstances ) );
 	memset( ret, 0, sizeof( struct DriverInstances ) );
-	struct ProminentDriver * led = ret->id = malloc( sizeof( struct ProminentDriver ) );
+	led = ret->id = malloc( sizeof( struct ProminentDriver ) );
 	memset( led, 0, sizeof( struct ProminentDriver ) );
 
 	ret->Func = LEDUpdate;

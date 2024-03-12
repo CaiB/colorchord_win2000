@@ -47,10 +47,10 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	float binvals[totbins];
 	float binvalsQ[totbins];
 	float binpos[totbins];
-	float totalbinval = 0;
-
 	float qtyHave[totbins];
 	float qtyWant[totbins];
+	float qtyDiff[totbins];
+	float totalbinval = 0;
 	float totQtyWant = 0;
 
 	memset( qtyHave, 0, sizeof( qtyHave ) );
@@ -67,12 +67,13 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 
 	for( i = 0; i < totbins; i++ )
 	{
+		float want;
 		binpos[i] = nf->note_positions[i] / nf->freqbins;
 		binvals[i] = pow( nf->note_amplitudes2[i], led->light_siding ); //Slow
 		binvalsQ[i] = pow( nf->note_amplitudes[i], led->light_siding ); //Fast
 		totalbinval += binvals[i];
 
-		float want = binvals[i] * led->qtyamp;
+		want = binvals[i] * led->qtyamp;
 		totQtyWant += want;
 		qtyWant[i] = want;
 	}
@@ -84,7 +85,6 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 			qtyWant[i] *= overage;
 	}
 
-	float qtyDiff[totbins];
 	for( i = 0; i < totbins; i++ )
 	{
 		qtyDiff[i] = qtyWant[i] - qtyHave[i];
@@ -137,13 +137,14 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 				{
 					float bias = 0;
 					float timeimp = 1;
+					float score;
 
 					bias = (j - led->snakeyplace + led->total_leds) % led->total_leds;
 
 					if( bias > led->total_leds / 2 ) bias = led->total_leds - bias + 1;
 					timeimp = 0;
 
-					float score = led->time_of_change[j] * timeimp + bias;
+					score = led->time_of_change[j] * timeimp + bias;
 					if( score < seltime )
 					{
 						seltime = score;
@@ -173,6 +174,8 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	for( i = 0; i < led->total_leds; i++ )	
 	{
 		int ia = led->led_note_attached[i];
+		float sat, satQ, sendsat;
+		int r;
 		if( ia == -1 )
 		{
 			OutLEDs[i*3+0] = 0;
@@ -180,12 +183,12 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 			OutLEDs[i*3+2] = 0;
 			continue;
 		}
-		float sat = binvals[ia] * led->satamp;
-		float satQ = binvalsQ[ia] * led->satamp;
+		sat = binvals[ia] * led->satamp;
+		satQ = binvalsQ[ia] * led->satamp;
 		if( satQ > 1 ) satQ = 1;
-		float sendsat = (led->steady_bright?sat:satQ);
+		sendsat = (led->steady_bright?sat:satQ);
 		if( sendsat > 1 ) sendsat = 1;
-		int r = CCtoHEX( binpos[ia], 1.0, pow( sendsat, led->outgamma ) );
+		r = CCtoHEX( binpos[ia], 1.0, pow( sendsat, led->outgamma ) );
 
 		OutLEDs[i*3+0] = (r>>24) & 0xff;
 		OutLEDs[i*3+1] = (r>>16) & 0xff;
@@ -219,9 +222,11 @@ static void LEDParams(void * id )
 static struct DriverInstances * OutputCells()
 {
 	int i;
-	struct DriverInstances * ret = malloc( sizeof( struct DriverInstances ) );
+	struct DriverInstances * ret;
+	struct CellsOutDriver * led;
+	ret = malloc( sizeof( struct DriverInstances ) );
 	memset( ret, 0, sizeof( struct DriverInstances ) );
-	struct CellsOutDriver * led = ret->id = malloc( sizeof( struct CellsOutDriver ) );
+	led = ret->id = malloc( sizeof( struct CellsOutDriver ) );
 	memset( led, 0, sizeof( struct CellsOutDriver ) );
 
 	for( i = 0; i < MAX_LEDS; i++ )

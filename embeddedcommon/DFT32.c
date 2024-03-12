@@ -170,17 +170,22 @@ void UpdateOutputBins32()
 	{
 		int32_t isps = *(ipt++); //keep 32 bits
 		int32_t ispc = *(ipt++);
+		int octave = i / FIXBPERO;
+#ifndef CCEMBEDDED
+		float mux;
+#endif
+		uint32_t rmux;
+
 		// take absolute values
 		isps = isps<0? -isps : isps;
 		ispc = ispc<0? -ispc : ispc;
-		int octave = i / FIXBPERO;
 
 		//If we are running DFT32 on regular ColorChord, then we will need to
 		//also update goutbins[]... But if we're on embedded systems, we only
 		//update embeddedbins32.
 #ifndef CCEMBEDDED
 		// convert 32 bit precision isps and ispc to floating point
-		float mux = ( (float)isps * (float)isps) + ((float)ispc * (float)ispc);
+		mux = ( (float)isps * (float)isps) + ((float)ispc * (float)ispc);
 		goutbins[i] = sqrtf(mux)/65536.0; // scale by 2^16
 		//reasonable (but arbitrary attenuation)
 		goutbins[i] /= (78<<DFTIIR)*(1<<octave); 
@@ -188,12 +193,12 @@ void UpdateOutputBins32()
 
 #if APPROXNORM == 1
 		// using full 32 bit precision for isps and ispc
-		uint32_t rmux = isps>ispc? isps + (ispc>>1) : ispc + (isps>>1);
+		rmux = isps>ispc? isps + (ispc>>1) : ispc + (isps>>1);
 		rmux = rmux>>16; // keep most significant 16 bits
 #else
 		// use the most significant 16 bits of isps and ispc when squaring
 		// since isps and ispc are non-negative right bit shifing is well defined
-		uint32_t rmux = ( (isps>>16) * (isps>>16)) + ((ispc>16) * (ispc>>16));
+		rmux = ( (isps>>16) * (isps>>16)) + ((ispc>16) * (ispc>>16));
 		rmux = SquareRootRounded( rmux );
 #endif
 
@@ -213,6 +218,8 @@ static void HandleInt( int16_t sample )
 	int16_t filteredsample;
 
 	uint8_t oct = Sdo_this_octave[Swhichoctaveplace];
+	uint16_t * dsA;
+	int32_t * dsB;
 	Swhichoctaveplace ++;
 	Swhichoctaveplace &= BINCYCLE-1;
 
@@ -246,8 +253,8 @@ static void HandleInt( int16_t sample )
 	}
 
 	// process a filtered sample for one of the octaves
-	uint16_t * dsA = &Sdatspace32A[oct*FIXBPERO*2];
-	int32_t * dsB = &Sdatspace32B[oct*FIXBPERO*2];
+	dsA = &Sdatspace32A[oct*FIXBPERO*2];
+	dsB = &Sdatspace32B[oct*FIXBPERO*2];
 
 	filteredsample = Saccum_octavebins[oct]>>(OCTAVES-oct);
 	Saccum_octavebins[oct] = 0;
@@ -304,8 +311,9 @@ void UpdateBins32( const uint16_t * frequencies )
 	int imod = 0;
 	for( i = 0; i < FIXBINS; i++, imod++ )
 	{
+		uint16_t freq;
 		if (imod >= FIXBPERO) imod=0;
-		uint16_t freq = frequencies[imod];
+		freq = frequencies[imod];
 		Sdatspace32A[i*2] = freq;// / oneoveroctave;
 	}
 }

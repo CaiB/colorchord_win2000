@@ -44,12 +44,12 @@ struct DPODriver
 
 int GetAnLED( struct DPODriver * d )
 {
+	int i;
 	if( d->numallocleds )
 	{
 		return d->unallocleds[--d->numallocleds];
 	}
 
-	int i;
 	//Okay, now we have to go search for one.
 	for( i = 0; i < d->note_peaks; i++ )
 	{
@@ -68,6 +68,8 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 	struct DPODriver * d = (struct DPODriver*)id;
 
 	int tleds = d->xn * d->yn;
+	float totalexp = 0;
+	int led = 0;
 
 	if( d->note_peaks != nf->note_peaks )
 	{
@@ -81,9 +83,6 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 			d->unallocleds[i] = i;
 
 	}
-
-
-	float totalexp = 0;
 
 	for( i = 0; i < d->note_peaks; i++ )
 	{
@@ -121,14 +120,14 @@ static void DPOUpdate(void * id, struct NoteFinder*nf)
 		}
 	}
 
-	int led = 0;
 	for( i = 0; i < d->note_peaks; i++ )
 	{
 		struct LINote * l = &d->notes[i];
 		int j;
 		float sat = nf->note_amplitudes_out[i] * d->satamp;
+		uint32_t color;
 		if( sat > 1 ) sat = 1;
-		uint32_t color = CCtoHEX( nf->note_positions[i] / nf->freqbins, 1.0, sat );
+		color = CCtoHEX( nf->note_positions[i] / nf->freqbins, 1.0, sat );
 
 		OutLEDs[led*3+0] = ( color >> 24 ) & 0xff;
 		OutLEDs[led*3+1] = ( color >> 16 ) & 0xff;

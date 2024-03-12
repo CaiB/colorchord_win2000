@@ -33,9 +33,10 @@ struct LEDOutDriver
 static float lindiff( float a, float b )  //Find the minimum change around a wheel.
 {
 	float diff = a - b;
+	float otherdiff;
 	if( diff < 0 ) diff *= -1;
 
-	float otherdiff = (a<b)?(a+1):(a-1);
+	otherdiff = (a<b)?(a+1):(a-1);
 	otherdiff -=b;
 	if( otherdiff < 0 ) otherdiff *= -1;
 
@@ -56,7 +57,14 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	float binvals[totbins];
 	float binvalsQ[totbins];
 	float binpos[totbins];
+	float rledpos[led->total_leds];
+	float rledamp[led->total_leds];
+	float rledampQ[led->total_leds];
 	float totalbinval = 0;
+	int rbinout = 0;
+
+	float newtotal = 0;
+	int minadvance = 0;
 
 //	if( totbins > led_bins ) totbins = led_bins;
 
@@ -72,8 +80,6 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 			// nf->note_amplitudes[i];//
 		totalbinval += binvals[i];
 	}
-
-	float newtotal = 0;
 
 	for( i = 0; i < totbins; i++ )
 	{
@@ -91,10 +97,6 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	}
 	totalbinval = newtotal;
 
-	float rledpos[led->total_leds];
-	float rledamp[led->total_leds];
-	float rledampQ[led->total_leds];
-	int rbinout = 0;
 
 
 
@@ -128,7 +130,6 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 	}
 	
 	//Now we have to minimize "advance".
-	int minadvance = 0;
 
 	if( led->is_loop )
 	{
@@ -138,7 +139,9 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 		for( i = 0; i < led->total_leds; i++ )
 		{
 			float diff = 0;
-			diff = 0;
+			int advancediff;
+			float ad;
+
 			for( j = 0; j < led->total_leds; j++ )
 			{
 				int r = (j + i) % led->total_leds;
@@ -146,11 +149,11 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 				diff += rd;//*rd;
 			}
 
-			int advancediff = ( led->lastadvance - i );
+			advancediff = ( led->lastadvance - i );
 			if( advancediff < 0 ) advancediff *= -1;
 			if( advancediff > led->total_leds/2 ) advancediff = led->total_leds - advancediff;
 
-			float ad = (float)advancediff/(float)led->total_leds;
+			ad = (float)advancediff/(float)led->total_leds;
 			diff += ad * ad;// * led->total_leds;
 
 			if( diff < mindiff )
@@ -170,15 +173,18 @@ static void LEDUpdate(void * id, struct NoteFinder*nf)
 		int ia = ( i + minadvance + led->total_leds ) % led->total_leds;
 		float sat = rledamp[ia] * led->satamp;
 		float satQ = rledampQ[ia] * led->satamp;
+		float sendsat;
+		int r;
+
 		if( satQ > 1 ) satQ = 1;
 		led->last_led_pos[i] = rledpos[ia];
 		led->last_led_amp[i] = sat;
-		float sendsat = (led->steady_bright?sat:satQ);
+		sendsat = (led->steady_bright?sat:satQ);
 		if( sendsat > 1 ) sendsat = 1;
 
 		if( sendsat > led->led_limit ) sendsat = led->led_limit;
 
-		int r = CCtoHEX( led->last_led_pos[i], 1.0, pow( sendsat, led->outgamma ) );
+		r = CCtoHEX( led->last_led_pos[i], 1.0, pow( sendsat, led->outgamma ) );
 
 		OutLEDs[i*3+0] = (r>>24) & 0xff;
 		OutLEDs[i*3+1] = (r>>16) & 0xff;
@@ -215,9 +221,11 @@ static void LEDParams(void * id )
 
 static struct DriverInstances * OutputLinear()
 {
-	struct DriverInstances * ret = malloc( sizeof( struct DriverInstances ) );
+	struct DriverInstances * ret;
+	struct LEDOutDriver * led;
+	ret = malloc( sizeof( struct DriverInstances ) );
 	memset( ret, 0, sizeof( struct DriverInstances ) );
-	struct LEDOutDriver * led = ret->id = malloc( sizeof( struct LEDOutDriver ) );
+	led = ret->id = malloc( sizeof( struct LEDOutDriver ) );
 	memset( led, 0, sizeof( struct LEDOutDriver ) );
 
 	ret->Func = LEDUpdate;
