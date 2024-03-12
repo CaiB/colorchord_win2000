@@ -6,6 +6,7 @@ Table of Contents
 
 - [ColorChord](#colorchord)
   - [Table of Contents](#table-of-contents)
+  - [About this Fork](#about-this-fork)
   - [What is ColorChord?](#what-is-colorchord)
   - [Background](#background)
   - [Current State of Affairs](#current-state-of-affairs)
@@ -19,6 +20,16 @@ Table of Contents
     - [MSYS2](#msys2)
   - [Using](#using)
   - [Additional Videos](#additional-videos)
+
+About this Fork
+---------------
+This is a silly idea I had, and somehow made it work. My "usecase" is to compile and run ColorChord using Visual Studio 6.0 on Windows 2000. Notably VC6 is not a C99 compiler, which introduced some additional difficulties.
+
+If you happen to have an equivalent setup, you should be able to simply open the workspace `colorchord2/windows2000/ColorChord_Win2000.dsw`, build and run. Alternatively, I've also [uploaded a binary you can simply use as-is in the releases section](https://github.com/CaiB/colorchord_win2000/releases).
+
+There is no WASAPI on Windows 2000, so loopback audio isn't supported, only microphone inputs. A few other things,such as network and HID outputs, have also been omitted since I couldn't be bothered to fix them.
+
+Feel free to submit PRs if you actually care about this for some reason, but this was mostly just a silly experiment. Feel free to share pictures of it running on real hardware if you do end up using it :)
 
 What is ColorChord?
 -------------------
