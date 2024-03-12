@@ -52,7 +52,11 @@ void FilterFoldedBinsBlob( float * folded, int bins, float strength, int iter )
 	int j;
 	for( j = 0; j < iter; j++ )
 	{
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		memcpy( tmp, folded, sizeof(float) * bins );
+#else
 		memcpy( tmp, folded, sizeof( tmp ) );
+#endif
 		for( i = 0; i < bins; i++ )
 		{
 //			float left = tmp[(i-1+bins)%bins];
