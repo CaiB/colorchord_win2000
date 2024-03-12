@@ -398,7 +398,6 @@ void RunNoteFinder( struct NoteFinder * nf, const float * audio_stream, int head
 
 	
 	nf->FinalizeTime = OGGetAbsoluteTime();
-	free(dftbins);
 }
 
 
